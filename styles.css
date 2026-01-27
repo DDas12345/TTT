@@ -1,61 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap');
+
+:root {
+    --pika-yellow: #FFDE00;
+    --pika-red: #FF0000;
+    --eevee-brown: #9E6C4C;
+    --eevee-cream: #F3E3B5;
+    --poke-blue: #3B4CCA;
+    --dark-bg: #1a1a1a;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+}
+
 * {
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
     height: 100vh;
     width: 100vw;
-    overflow-x: hidden;
-    overflow-y: scroll;
+    font-family: 'Outfit', sans-serif;
+    background: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
 }
 
 #wrapper {
-    height: 100%;
     width: 100%;
+    max-width: 500px;
+    padding: 20px;
 }
 
 .container {
-    height: 100%;
-    width: 100%; 
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.82);
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    background: linear-gradient(to right, var(--pika-yellow), var(--eevee-cream));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .game-wrapper {
-    height: 90%;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    row-gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
 }
 
 .row {
-    display: flex;
-    column-gap: 10px;
-    width: 50%;
-    height: 100px;
-    background-color: red;
+    display: contents;
+    /* Use grid instead of flex rows for cleaner layout */
 }
 
 .box {
-    flex-basis: 33%;
-    flex-grow: 1;
-    background-color: green;
-    height: 100%;
-    font-size: 50px;
+    aspect-ratio: 1/1;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
 }
 
-.winner {
-    font-size: 30px;
+.box:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    border-color: var(--pika-yellow);
+}
+
+.box.taken {
+    cursor: default;
+    transform: none;
+}
+
+.box img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .controllers {
     display: flex;
-    flex-direction: row;
-    column-gap: 30px;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.status {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.winner {
+    font-size: 1.8rem;
+    font-weight: 700;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
     justify-content: center;
+    color: var(--pika-yellow);
+}
+
+.reset {
+    padding: 12px 30px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--pika-yellow) 0%, #ffc107 100%);
+    color: #000;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 222, 0, 0.3);
+}
+
+.reset:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 222, 0, 0.5);
+}
+
+.reset:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #666;
+    box-shadow: none;
+}
+
+.turn-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.turn-indicator img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.turn-indicator img.active {
+    border-color: var(--pika-yellow);
+    box-shadow: 0 0 15px var(--pika-yellow);
+    transform: scale(1.2);
 }

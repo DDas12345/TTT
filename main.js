@@ -1,84 +1,108 @@
-const boxes = document.querySelectorAll(".box");
-const winnerText = document.querySelector(".winner");
-const resetBtn = document.querySelector(".reset");
+document.addEventListener('DOMContentLoaded', () => {
+    const boxes = document.querySelectorAll('.box');
+    const statusText = document.getElementById('status-text');
+    const resetBtn = document.getElementById('reset-btn');
+    const pikaIndicator = document.getElementById('pika-indicator');
+    const eeveeIndicator = document.getElementById('eevee-indicator');
 
-let currentPlayer = "X";
-let gameState = ["", "", "", "", "", "", "", "", ""]; // Track the 9 boxes
-let gameActive = true;
+    let currentPlayer = 'pikachu'; // 'pikachu' or 'eevee'
+    let gameState = ["", "", "", "", "", "", "", "", ""];
+    let gameActive = true;
 
-// Define the indices that result in a win
-const winningConditions = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-    [0, 4, 8], [2, 4, 6]             // Diagonals
-];
+    const winningConditions = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
 
-// Handle user clicks
-function handleBoxClick(event) {
-    const clickedBox = event.target;
-    const boxIndex = parseInt(clickedBox.getAttribute("data-index"));
+    function handleBoxClick(clickedBoxEvent) {
+        const clickedBox = clickedBoxEvent.target.closest('.box');
+        const clickedBoxIndex = parseInt(clickedBox.getAttribute('data-index'));
 
-    // Ignore click if box is filled or game is over
-    if (gameState[boxIndex] !== "" || !gameActive) {
-        return;
+        if (gameState[clickedBoxIndex] !== "" || !gameActive) {
+            return;
+        }
+
+        handleBoxPlayed(clickedBox, clickedBoxIndex);
+        handleResultValidation();
     }
 
-    updateBox(clickedBox, boxIndex);
-    checkResult();
-}
+    function handleBoxPlayed(clickedBox, clickedBoxIndex) {
+        gameState[clickedBoxIndex] = currentPlayer;
 
-// Update the UI and the state array
-function updateBox(box, index) {
-    gameState[index] = currentPlayer;
-    box.textContent = currentPlayer;
-}
+        const img = document.createElement('img');
+        img.src = `${currentPlayer}.png`;
+        img.alt = currentPlayer;
+        clickedBox.appendChild(img);
+        clickedBox.classList.add('taken');
+    }
 
-// Switch player
-function changePlayer() {
-    currentPlayer = (currentPlayer === "X") ? "O" : "X";
-    winnerText.textContent = `Player ${currentPlayer}'s Turn`;
-}
+    function handleResultValidation() {
+        let roundWon = false;
+        for (let i = 0; i <= 7; i++) {
+            const winCondition = winningConditions[i];
+            let a = gameState[winCondition[0]];
+            let b = gameState[winCondition[1]];
+            let c = gameState[winCondition[2]];
+            if (a === '' || b === '' || c === '') {
+                continue;
+            }
+            if (a === b && b === c) {
+                roundWon = true;
+                break;
+            }
+        }
 
-// Check for win or draw
-function checkResult() {
-    let roundWon = false;
+        if (roundWon) {
+            statusText.innerText = `${currentPlayer === 'pikachu' ? 'Pikachu' : 'Eevee'} wins the Battle!`;
+            statusText.style.color = currentPlayer === 'pikachu' ? 'var(--pika-yellow)' : 'var(--eevee-cream)';
+            gameActive = false;
+            return;
+        }
 
-    for (let i = 0; i < winningConditions.length; i++) {
-        const [a, b, c] = winningConditions[i];
-        if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
-            roundWon = true;
-            break;
+        let roundDraw = !gameState.includes("");
+        if (roundDraw) {
+            statusText.innerText = "Battle Draw!";
+            statusText.style.color = "white";
+            gameActive = false;
+            return;
+        }
+
+        handlePlayerChange();
+    }
+
+    function handlePlayerChange() {
+        currentPlayer = currentPlayer === "pikachu" ? "eevee" : "pikachu";
+        statusText.innerText = `${currentPlayer === 'pikachu' ? 'Pikachu' : 'Eevee'}'s Turn!`;
+
+        if (currentPlayer === 'pikachu') {
+            pikaIndicator.classList.add('active');
+            eeveeIndicator.classList.remove('active');
+        } else {
+            eeveeIndicator.classList.add('active');
+            pikaIndicator.classList.remove('active');
         }
     }
 
-    if (roundWon) {
-        winnerText.textContent = `Player ${currentPlayer} Wins! 🎉`;
-        gameActive = false;
-        resetBtn.disabled = false;
-        return;
+    function handleRestartGame() {
+        gameActive = true;
+        currentPlayer = "pikachu";
+        gameState = ["", "", "", "", "", "", "", "", ""];
+        statusText.innerText = "Pikachu's Turn!";
+        statusText.style.color = "var(--pika-yellow)";
+        pikaIndicator.classList.add('active');
+        eeveeIndicator.classList.remove('active');
+        boxes.forEach(box => {
+            box.innerHTML = "";
+            box.classList.remove('taken');
+        });
     }
 
-    // Check for draw
-    if (!gameState.includes("")) {
-        winnerText.textContent = "It's a Draw! 🤝";
-        gameActive = false;
-        resetBtn.disabled = false;
-        return;
-    }
-
-    changePlayer();
-}
-
-// Reset the game
-function resetGame() {
-    currentPlayer = "X";
-    gameState = ["", "", "", "", "", "", "", "", ""];
-    gameActive = true;
-    winnerText.textContent = "Winner?";
-    resetBtn.disabled = true;
-    boxes.forEach(box => box.textContent = "");
-}
-
-// Event Listeners
-boxes.forEach(box => box.addEventListener("click", handleBoxClick));
-resetBtn.addEventListener("click", resetGame);
+    boxes.forEach(box => box.addEventListener('click', handleBoxClick));
+    resetBtn.addEventListener('click', handleRestartGame);
+});

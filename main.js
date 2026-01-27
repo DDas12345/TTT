@@ -1,84 +1,116 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const boxes = document.querySelectorAll('.box');
+    const gridContainer = document.getElementById('grid-container');
     const statusText = document.getElementById('status-text');
     const resetBtn = document.getElementById('reset-btn');
     const pikaIndicator = document.getElementById('pika-indicator');
     const eeveeIndicator = document.getElementById('eevee-indicator');
+    const hostBubble = document.querySelector('.host-bubble');
 
-    let currentPlayer = 'pikachu'; // 'pikachu' or 'eevee'
-    let gameState = ["", "", "", "", "", "", "", "", ""];
+    const GRID_SIZE = 5;
+    const WIN_COUNT = 5; // 5 in a row to win
+    let currentPlayer = 'pikachu';
+    let gameState = Array(GRID_SIZE * GRID_SIZE).fill("");
     let gameActive = true;
 
-    const winningConditions = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6]
-    ];
+    const hostMessages = {
+        start: "Welcome to the Divine Battle. Choose your side.",
+        pikaTurn: "Pikachu, use your speed!",
+        eeveeTurn: "Eevee, show your potential!",
+        pikaWin: "Pikachu has triumphed! A legendary victory.",
+        eeveeWin: "Eevee has evolved into a winner!",
+        draw: "A stalemate... even I, Arceus, am impressed."
+    };
 
-    function handleBoxClick(clickedBoxEvent) {
-        const clickedBox = clickedBoxEvent.target.closest('.box');
-        const clickedBoxIndex = parseInt(clickedBox.getAttribute('data-index'));
-
-        if (gameState[clickedBoxIndex] !== "" || !gameActive) {
-            return;
+    function createGrid() {
+        gridContainer.innerHTML = '';
+        for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+            const box = document.createElement('div');
+            box.classList.add('box');
+            box.setAttribute('data-index', i);
+            box.addEventListener('click', handleBoxClick);
+            gridContainer.appendChild(box);
         }
-
-        handleBoxPlayed(clickedBox, clickedBoxIndex);
-        handleResultValidation();
     }
 
-    function handleBoxPlayed(clickedBox, clickedBoxIndex) {
-        gameState[clickedBoxIndex] = currentPlayer;
+    function handleBoxClick(e) {
+        const clickedBox = e.target;
+        const index = parseInt(clickedBox.getAttribute('data-index'));
 
+        if (gameState[index] !== "" || !gameActive) return;
+
+        gameState[index] = currentPlayer;
         const img = document.createElement('img');
         img.src = `${currentPlayer}.png`;
-        img.alt = currentPlayer;
         clickedBox.appendChild(img);
         clickedBox.classList.add('taken');
+
+        checkResult();
     }
 
-    function handleResultValidation() {
+    function checkResult() {
         let roundWon = false;
-        for (let i = 0; i <= 7; i++) {
-            const winCondition = winningConditions[i];
-            let a = gameState[winCondition[0]];
-            let b = gameState[winCondition[1]];
-            let c = gameState[winCondition[2]];
-            if (a === '' || b === '' || c === '') {
-                continue;
+
+        // Check rows, cols, and diagonals
+        for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+            if (gameState[i] === "") continue;
+
+            const row = Math.floor(i / GRID_SIZE);
+            const col = i % GRID_SIZE;
+
+            // Horizontal
+            if (col <= GRID_SIZE - WIN_COUNT) {
+                if (checkLine(i, 1)) roundWon = true;
             }
-            if (a === b && b === c) {
-                roundWon = true;
-                break;
+            // Vertical
+            if (row <= GRID_SIZE - WIN_COUNT) {
+                if (checkLine(i, GRID_SIZE)) roundWon = true;
             }
+            // Diagonal Right
+            if (col <= GRID_SIZE - WIN_COUNT && row <= GRID_SIZE - WIN_COUNT) {
+                if (checkLine(i, GRID_SIZE + 1)) roundWon = true;
+            }
+            // Diagonal Left
+            if (col >= WIN_COUNT - 1 && row <= GRID_SIZE - WIN_COUNT) {
+                if (checkLine(i, GRID_SIZE - 1)) roundWon = true;
+            }
+
+            if (roundWon) break;
         }
 
         if (roundWon) {
-            statusText.innerText = `${currentPlayer === 'pikachu' ? 'Pikachu' : 'Eevee'} wins the Battle!`;
+            const winnerName = currentPlayer === 'pikachu' ? 'Pikachu' : 'Eevee';
+            statusText.innerText = `${winnerName} Wins!`;
             statusText.style.color = currentPlayer === 'pikachu' ? 'var(--pika-yellow)' : 'var(--eevee-cream)';
+            hostBubble.innerText = currentPlayer === 'pikachu' ? hostMessages.pikaWin : hostMessages.eeveeWin;
             gameActive = false;
             return;
         }
 
-        let roundDraw = !gameState.includes("");
-        if (roundDraw) {
-            statusText.innerText = "Battle Draw!";
+        if (!gameState.includes("")) {
+            statusText.innerText = "It's a Draw!";
             statusText.style.color = "white";
+            hostBubble.innerText = hostMessages.draw;
             gameActive = false;
             return;
         }
 
-        handlePlayerChange();
+        switchPlayer();
     }
 
-    function handlePlayerChange() {
-        currentPlayer = currentPlayer === "pikachu" ? "eevee" : "pikachu";
-        statusText.innerText = `${currentPlayer === 'pikachu' ? 'Pikachu' : 'Eevee'}'s Turn!`;
+    function checkLine(start, step) {
+        const player = gameState[start];
+        for (let i = 1; i < WIN_COUNT; i++) {
+            if (gameState[start + i * step] !== player) return false;
+        }
+        return true;
+    }
+
+    function switchPlayer() {
+        currentPlayer = currentPlayer === 'pikachu' ? 'eevee' : 'pikachu';
+        const winnerName = currentPlayer === 'pikachu' ? 'Pikachu' : 'Eevee';
+        statusText.innerText = `${winnerName}'s Turn`;
+        statusText.style.color = currentPlayer === 'pikachu' ? 'var(--pika-yellow)' : 'var(--eevee-cream)';
+        hostBubble.innerText = currentPlayer === 'pikachu' ? hostMessages.pikaTurn : hostMessages.eeveeTurn;
 
         if (currentPlayer === 'pikachu') {
             pikaIndicator.classList.add('active');
@@ -89,20 +121,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handleRestartGame() {
+    resetBtn.addEventListener('click', () => {
+        gameState.fill("");
         gameActive = true;
-        currentPlayer = "pikachu";
-        gameState = ["", "", "", "", "", "", "", "", ""];
-        statusText.innerText = "Pikachu's Turn!";
+        currentPlayer = 'pikachu';
+        statusText.innerText = "Pikachu's Turn";
         statusText.style.color = "var(--pika-yellow)";
+        hostBubble.innerText = hostMessages.start;
         pikaIndicator.classList.add('active');
         eeveeIndicator.classList.remove('active');
-        boxes.forEach(box => {
-            box.innerHTML = "";
-            box.classList.remove('taken');
-        });
-    }
+        createGrid();
+    });
 
-    boxes.forEach(box => box.addEventListener('click', handleBoxClick));
-    resetBtn.addEventListener('click', handleRestartGame);
+    createGrid();
 });

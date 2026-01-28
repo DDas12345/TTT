@@ -101,15 +101,22 @@ body {
     text-align: center;
 }
 
-h1 {
-    font-size: 2rem;
-    margin-bottom: 15px;
-    background: linear-gradient(to right, var(--pika-yellow), var(--eevee-cream));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+.logo-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
+#game-logo {
+    max-width: 160px;
+    height: auto;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+    transition: transform 0.3s ease;
+}
+
+#game-logo:hover {
+    transform: scale(1.05);
 }
 
 .turn-indicator {
